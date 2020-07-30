@@ -31,13 +31,15 @@ mouse = Controller()
 face_default_height = 160
 face_default_threshold = 20
 
-mouse_threshold = 55
-vert_mouse_threshold = 50
+mouse_threshold = 45
+vert_mouse_threshold = 40
 
-mouse_horizontal_sensitivity = 2
-mouse_vertical_sensitivity = 1.1
+mouse_horizontal_sensitivity = 3.5
+mouse_vertical_sensitivity = 1
 
+smooth_movement_split = 2
 
+hand_threshold = 1.0
 
 # Control Things
 is_firing = False
@@ -47,8 +49,8 @@ is_s = False
 def move_mouse(x, y):
     ctypes.windll.user32.mouse_event(
         ctypes.c_uint(0x0001),
-        ctypes.c_uint(x),
-        ctypes.c_uint(y),
+        ctypes.c_uint(math.floor(x)),
+        ctypes.c_uint(math.floor(y)),
         ctypes.c_uint(0),
         ctypes.c_uint(0)
     )
@@ -58,14 +60,16 @@ def face_size_parser(x, y, w, h):
     global is_w
     if h > face_default_height+face_default_threshold:
         print("forward")
-        if not is_w:
-            keyboard.press("w")
-            is_w = True
+        #if not is_w:
+        #    keyboard.press("w")
+        #    is_w = True
+        keyboard.press("w")
     elif h < face_default_height-(face_default_threshold*1.2):
         print("backward")
-        if not is_s:
-            keyboard.press("s")
-            is_s = True
+        #if not is_s:
+        #    keyboard.press("s")
+        #    is_s = True
+        keyboard.press("s")
     else:
         print("in threshold")
         keyboard.release("w")
@@ -86,26 +90,26 @@ def check_if_shoot(image):
         pos = np.mean(pos, 0)
 
         # post-processing
-        prob = np.asarray([(p >= 0.5) * 1.0 for p in prob])
+        prob = np.asarray([(p >= hand_threshold) * 1.0 for p in prob])
         for i in range(0, len(pos), 2):
             pos[i] = pos[i] * width + tl[0]
             pos[i + 1] = pos[i + 1] * height + tl[1]
 
         # drawing
-        #index = 0
-        #color = [(15, 15, 240), (15, 240, 155), (240, 155, 15), (240, 15, 155), (240, 15, 240)]
-        #image = cv2.rectangle(image, (tl[0], tl[1]), (br[0], br[1]), (235, 26, 158), 2)
+        index = 0
+        color = [(15, 15, 240), (15, 240, 155), (240, 155, 15), (240, 15, 155), (240, 15, 240)]
+        image = cv2.rectangle(image, (tl[0], tl[1]), (br[0], br[1]), (235, 26, 158), 2)
         for c, p in enumerate(prob):
-            if p > 0.5:
+            if p >= hand_threshold:
                 print("hand detected")
                 is_shooting = True
-                break
-                #image = cv2.circle(image, (int(pos[index]), int(pos[index + 1])), radius=12,
-                #                   color=color[c], thickness=-2)
-            #index = index + 2
+                # break
+                print(p)
+                image = cv2.circle(image, (int(pos[index]), int(pos[index + 1])), radius=12,
+                                   color=color[c], thickness=-2)
+            index = index + 2
 
     if is_shooting:
-        if not is_firing:
             print('firing')
             mouse.press(Button.left)
             is_firing = True
@@ -118,10 +122,18 @@ def face_mouse_movements(px, py, pw, ph):
     y = math.floor(ph/2)+py
     # x axis movement
     if x < frame_center[0] - mouse_threshold:
-        move_mouse(math.floor(abs(((frame_center[0] - mouse_threshold)-x))*(mouse_horizontal_sensitivity)),0)
+
+        for x in range(math.floor(math.floor(abs(((frame_center[0] - mouse_threshold)-x))*(mouse_horizontal_sensitivity))/smooth_movement_split)):
+            move_mouse(smooth_movement_split,0)
 
     elif x > frame_center[0] + mouse_threshold:
-        move_mouse(math.floor(((frame_center[0] + mouse_threshold)-x)*(mouse_horizontal_sensitivity)), 0)
+        #for x in range(abs(math.floor(math.floor(((frame_center[0] + mouse_threshold)-x)*(mouse_horizontal_sensitivity))/smooth_movement_split))):
+        #    move_mouse(-1*smooth_movement_split, 0)
+        mov = math.floor(math.floor(((frame_center[0] + mouse_threshold)-x)*(mouse_horizontal_sensitivity))/smooth_movement_split)
+        if abs(mov) > 30:
+            move_mouse(mov, 0)
+        else:
+            move_mouse(mov/2, 0)
 
     # y axis movement
     if y > frame_center[1] + vert_mouse_threshold:
