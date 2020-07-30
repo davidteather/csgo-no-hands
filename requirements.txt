@@ -1,6 +1,8 @@
 opencv-python
 keyboard
-numpy
 pyautogui
 pydirectinput
 pynput
+tensorflow-gpu==1.15.0
+keras==2.2.4
+imgaug==0.2.6
