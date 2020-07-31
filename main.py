@@ -147,6 +147,10 @@ faceCascade = cv2.CascadeClassifier(cascPath)
 log.basicConfig(filename='webcam.log',level=log.INFO)
 
 video_capture = cv2.VideoCapture(0)
+
+#video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+#video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+
 anterior = 0
 
 ret, frame = video_capture.read()
