@@ -13,6 +13,9 @@ from pynput.mouse import Button, Controller
 import numpy as np
 from unified_detector import Fingertips
 from hand_detector.detector import SOLO, YOLO
+from gaze_tracking import GazeTracking
+import time
+gaze = GazeTracking()
 
 hand_detection_method = 'solo'
 
@@ -40,6 +43,26 @@ mouse_vertical_sensitivity = 1
 smooth_movement_split = 2
 
 hand_threshold = 1.0
+
+left_pupil = []
+right_pupil = []
+
+def set_config():
+    global left_pupil
+    global right_pupil
+    global video_capture
+    global gaze
+
+
+    for place in ['top left', 'top right', 'bottom left', 'bottom right']:
+        print("Look at the {} of your screen and hit enter".format(place))
+        input()
+
+        _, frame = video_capture.read()
+        gaze.refresh(frame)
+
+        left_pupil.append(gaze.pupil_left_coords())
+        right_pupil.append(gaze.pupil_right_coords())
 
 # Control Things
 is_firing = False
@@ -117,7 +140,7 @@ def check_if_shoot(image):
         mouse.release(Button.left)
         is_firing = False
 
-def face_mouse_movements(px, py, pw, ph):
+def face_mouse_movements_old(px, py, pw, ph):
     x = math.floor(pw/2)+px
     y = math.floor(ph/2)+py
     # x axis movement
@@ -142,6 +165,26 @@ def face_mouse_movements(px, py, pw, ph):
     elif y < frame_center[1] - vert_mouse_threshold:
         move_mouse(0,math.floor(((frame_center[1] + vert_mouse_threshold)-y)*(-1*mouse_vertical_sensitivity)))
 
+def eye_mouse_movements(right_pupil):
+    global left_pupil
+    global coords
+    if len(right_pupil) == 4:
+        # Then now we do the thing
+        screen_width = 1920
+        screen_height = 1080
+
+        dist_between_x = left_pupil[0][0] - left_pupil[1][0]
+        per_pixel_x = screen_width/dist_between_x
+
+        dist_between_y = left_pupil[0][1] - left_pupil[2][1]
+        per_pixel_y = screen_width/dist_between_x
+
+        coords = gaze.pupil_left_coords()
+        if coords != None:
+            print(str(math.floor(abs((coords[0]-left_pupil[0][0])*per_pixel_x))) + "," + str(math.floor(abs((coords[1]-left_pupil[0][1])*per_pixel_y))))
+            move_mouse(math.floor(abs((coords[0]-left_pupil[0][0])*per_pixel_x)), math.floor(abs((coords[1]-left_pupil[0][1])*per_pixel_y)))
+            time.sleep(0.2)
+
 cascPath = "haarcascade_frontalface_default.xml"
 faceCascade = cv2.CascadeClassifier(cascPath)
 log.basicConfig(filename='webcam.log',level=log.INFO)
@@ -157,6 +200,8 @@ ret, frame = video_capture.read()
 f_h, f_w, channels = frame.shape
 frame_center = (math.floor(f_w/2), math.floor(f_h/2))
 
+
+set_config()
 while True:
     if not video_capture.isOpened():
         print('Unable to load camera.')
@@ -165,6 +210,7 @@ while True:
 
     # Capture frame-by-frame
     ret, frame = video_capture.read()
+    gaze.refresh(frame)
 
     cv2.circle(frame, frame_center, radius=2, color=(0, 0, 255), thickness=-1)
         
@@ -185,7 +231,8 @@ while True:
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
         face_size_parser(x, y, w, h)
-        face_mouse_movements(x, y, w, h)
+        # face_mouse_movements(x, y, w, h)
+        eye_mouse_movements(right_pupil)
         break
 
     if anterior != len(faces):
