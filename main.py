@@ -181,9 +181,10 @@ def eye_mouse_movements(right_pupil):
 
         coords = gaze.pupil_left_coords()
         if coords != None:
-            print(str(math.floor(abs((coords[0]-left_pupil[0][0])*per_pixel_x))) + "," + str(math.floor(abs((coords[1]-left_pupil[0][1])*per_pixel_y))))
-            move_mouse(math.floor(abs((coords[0]-left_pupil[0][0])*per_pixel_x)), math.floor(abs((coords[1]-left_pupil[0][1])*per_pixel_y)))
-            time.sleep(0.2)
+            center_of_screen = (math.floor(screen_height/2),math.floor(screen_width/2))
+            move_steps = 20
+            for x in range(move_steps):
+                move_mouse(math.floor(math.floor(abs((coords[0]-left_pupil[0][0])*per_pixel_x)-center_of_screen[0])/move_steps), math.floor(math.floor(abs((coords[1]-left_pupil[0][1])*per_pixel_y))-center_of_screen[1])/move_steps)
 
 cascPath = "haarcascade_frontalface_default.xml"
 faceCascade = cv2.CascadeClassifier(cascPath)
