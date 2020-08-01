@@ -6,6 +6,7 @@ TODO:
 
 
 # Resources
-https://sourceforge.net/projects/gazepointer/
-
-https://sourceforge.net/projects/gazerecorder/
+* https://sourceforge.net/projects/gazepointer/
+* https://sourceforge.net/projects/gazerecorder/
+* [Cheap Eye Tracker Module from old alienware](https://www.ebay.com/itm/Dell-Alienware-17-R4-Tobii-Eye-Tracker-Module-Board-CHC03-YW64G-XCMKD/132907461483?hash=item1ef1e6eb6b:g:LxYAAOSwmPlcLkLQ)
+* [Tobii Eye Tracker](https://gaming.tobii.com/product/eye-tracker-5/)
