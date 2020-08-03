@@ -7,6 +7,7 @@ import keyboard
 import face_recognition
 import math
 import ctypes
+import glob
 import functools
 import inspect
 import time
@@ -64,6 +65,7 @@ known_face_names = []
 
 faces = glob.glob("faces_for_loadouts/*")
 for face in faces:
+    print(face)
     tmp_image = face_recognition.load_image_file(face)
     face_encoding = face_recognition.face_encodings(tmp_image)[0]
     known_face_encodings.append(face_encoding)
@@ -256,14 +258,13 @@ while True:
                 name = known_face_names[best_match_index]
 
                 loadout_keys = name_to_gun[name].split("&&")
+                keyboard.press_and_release('q')
                 for weapon in loadout_keys:
                     buttons = weapon_hotkeys[weapon].split("-")
-                    keyboard.press_and_release('q')
                     for b in buttons:
                         keyboard.press_and_release(b)
 
-                    for x in range(2):
-                        keyboard.press_and_release('escape')
+                keyboard.press_and_release('escape')
                     
 
     
