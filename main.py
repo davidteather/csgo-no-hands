@@ -4,11 +4,13 @@ import logging as log
 import datetime as dt
 from time import sleep
 import keyboard
+import face_recognition
 import math
 import ctypes
 import functools
 import inspect
 import time
+import json
 import base64
 from pynput.mouse import Button, Controller
 import numpy as np
@@ -30,6 +32,11 @@ fingertips = Fingertips(weights='weights/classes8.h5')
 
 mouse = Controller()
 
+with open("img_name_to_gun.json", 'r') as i:
+    name_to_gun = json.loads(i.read())
+
+with open("csgo-weapon-loadout-hotkeys.json", 'r') as i:
+    weapon_hotkeys = json.loads(i.read())
 
 face_default_height = 160
 face_default_threshold = 20
@@ -51,6 +58,22 @@ right_pupil = []
 is_firing = False
 is_w = False
 is_s = False
+
+known_face_encodings = []
+known_face_names = []
+
+faces = glob.glob("faces_for_loadouts/*")
+for face in faces:
+    tmp_image = face_recognition.load_image_file(face)
+    face_encoding = face_recognition.face_encodings(tmp_image)[0]
+    known_face_encodings.append(face_encoding)
+    known_face_names.append(face.split("\\")[1].split(".")[0])
+
+# Initialize some variables
+face_locations = []
+face_encodings = []
+face_names = []
+process_this_frame = True
 
 def move_mouse(x, y):
     ctypes.windll.user32.mouse_event(
@@ -206,7 +229,44 @@ while True:
     frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR) 
 
     # cv2.circle(frame, frame_center, radius=2, color=(0, 0, 255), thickness=-1)
-        
+
+    #
+    # Facial Recognition
+    #
+    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+
+    # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
+    rgb_small_frame = small_frame[:, :, ::-1]
+
+    # Only process every other frame of video to save time
+    if process_this_frame:
+        # Find all the faces and face encodings in the current frame of video
+        face_locations = face_recognition.face_locations(rgb_small_frame)
+        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+
+        face_names = []
+        for face_encoding in face_encodings:
+            # See if the face is a match for the known face(s)
+            matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+            name = "Unknown"
+
+            face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+            best_match_index = np.argmin(face_distances)
+            if matches[best_match_index]:
+                name = known_face_names[best_match_index]
+
+                loadout_keys = name_to_gun[name].split("&&")
+                for weapon in loadout_keys:
+                    buttons = weapon_hotkeys[weapon].split("-")
+                    keyboard.press_and_release('q')
+                    for b in buttons:
+                        keyboard.press_and_release(b)
+
+                    for x in range(2):
+                        keyboard.press_and_release('escape')
+                    
+
+    
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     faces = faceCascade.detectMultiScale(
