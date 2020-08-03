@@ -1,3 +1,4 @@
 env/*
 *.log
 ml_attempt/*
+gaze_backend/node_modules/*
