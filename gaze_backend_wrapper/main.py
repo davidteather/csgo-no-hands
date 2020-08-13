@@ -7,7 +7,7 @@ from datauri import DataURI
 application = Flask(__name__)
 
 driver = webdriver.Chrome()
-driver.get("http://localhost:3000/calibration.html?")
+driver.get("https://webgazer.cs.brown.edu/calibration.html?")
 print("Calibrate")
 
 #

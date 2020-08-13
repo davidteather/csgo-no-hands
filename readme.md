@@ -1,16 +1,15 @@
-TODO:
+# CSGO-No-Hands
 
-* Add Voice Recognition For Buying Weapons
-* Add Buy loadouts
-* Find a better way to move vision & character (use 2 hands?)
+Hey there, here's code for my hacky solution to playing CSGO without touching my keyboard or mouse.
 
+## Demo
 
-# Resources
-* https://sourceforge.net/projects/gazepointer/
-* https://sourceforge.net/projects/gazerecorder/
-* [Cheap Eye Tracker Module from old alienware](https://www.ebay.com/itm/Dell-Alienware-17-R4-Tobii-Eye-Tracker-Module-Board-CHC03-YW64G-XCMKD/132907461483?hash=item1ef1e6eb6b:g:LxYAAOSwmPlcLkLQ)
-* [Tobii Eye Tracker](https://gaming.tobii.com/product/eye-tracker-5/)
+I made a youtube video covering this project as well as some example gameplay of it which you can find [here](https://www.youtube.com/watch?v=5rL8Y2WW6iw)
 
-# Run
+## Installation
 
-gaze_backend - browser-sync start --server --files "*"
+Download this repository. Install chromedriver into your path and install requirements listed in the requirements.txt
+
+## Running
+
+You need to run gaze_backend_wrapper/main.py and calibrate the website that opens up automatically, then you need to run the main.py. I've found that it's quite intense on your GPU and I had to lower my CSGO graphics to the lowest setting to use less cuda cores on my GPU
